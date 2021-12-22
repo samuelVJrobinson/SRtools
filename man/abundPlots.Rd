@@ -8,7 +8,8 @@ abundPlots(
   d,
   family = family,
   genus = genus,
-  genSpp = genSpp,
+  species = NULL,
+  genSpp = NULL,
   colourSet = "Set1",
   scaleYtext = c(1, 1, 1),
   keepSpp = TRUE
@@ -21,7 +22,9 @@ abundPlots(
 
 \item{genus}{Genus column}
 
-\item{genSpp}{GenSpp column (create using \code{\link{makeGenSpp}})}
+\item{species}{Species column - can also use genSpp column (see below)}
+
+\item{genSpp}{GenSpp column (optional - create using \code{\link{makeGenSpp}})}
 
 \item{colourSet}{Colour set from ColourBrewer (default = "Set1")}
 
@@ -30,14 +33,15 @@ abundPlots(
 \item{keepSpp}{Keep morphospecies? (default = TRUE)}
 }
 \value{
-A \code{ggarrange} (\code{ggplot}) object
+A \code{ggarrange} (\code{ggplot}) object, showing bee abundances split up by species, genus, and family
 }
 \description{
 Function to make bee taxonomic abundance plots (species, genus, family level counts) from data frame.
 }
 \examples{
-
-dat <- data.frame(f=c('Apidae','Apidae','Apidae','Colletidae','Andrenidae','Andrenidae'), g=c('Bombus','Bombus','Apis','Hylaeus','Panurgus','Panurgus'), s=c('rufocinctus','rufocinctus','mellifera','latifrons','badia','spp.'))
-abundPlots(dat,f,g,s,showSpp=FALSE)
-abundPlots(dat,f,g,s,showSpp=TRUE)
+dat <- data.frame(f=c('Apidae','Apidae','Apidae','Colletidae','Andrenidae','Andrenidae'),
+    g=c('Bombus','Bombus','Apis','Hylaeus','Lasioglossum','Lasioglossum'),
+    s=c('rufocinctus','rufocinctus','mellifera','annulatus','zonulum','spp.'))
+abundPlots(dat,f,g,s,keepSpp=FALSE)
+abundPlots(dat,f,g,s,keepSpp=TRUE)
 }

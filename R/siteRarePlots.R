@@ -11,12 +11,24 @@
 #' @return A \code{ggplot} object
 #' @export
 #' @examples
-#' NULL
+#' library(SRtools)
+#' data(dune,package='vegan')
+#'
+#' #Site-by-site
+#' siteRarePlots(dune,Ncol = 5,Nrow=4,measType = 'Chao1',seMult = 1.96)
+#'
+#' #Overall
+#' oDune <-t(as.matrix(colSums(dune)))
+#' siteRarePlots(oDune,Ncol = 1,Nrow=1,measType = 'Chao1',seMult = 1.96)
 siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='both',textRange=c(0.1,0.4),seMult=1,rowOrder='asis'){
   require(vegan)
   require(ggplot2)
   require(dplyr)
   require(tidyr)
+  require(tibble)
+
+  #BS checking
+  if(sum(c('both','Chao1','ACE','none') %in% measType)!=1) stop("measType must be one of 'both','Chao1','ACE','none'")
 
   #TO DO:
   # 1) How does function respond to empty rows in matrix?
@@ -24,6 +36,8 @@ siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='both',textRange=c(0.1,0.4)
   if(nrow(d)>1 & any(is.na(c(Ncol,Nrow)))){ #If columns not specified, and Nsites>1
     Ncol <- nrow(d); Nrow <- 1
   }
+
+  if(is.null(rownames(d))) rownames(d) <- as.character(1:nrow(d)) #Create rownames (site names) if necessary
 
   #Get rarefaction data from 1:N samples
   rareDat <- data.frame(Species=unlist(lapply(1:nrow(d),

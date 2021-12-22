@@ -2,7 +2,8 @@ Package: SRtools
 Type: Package
 Title: Helper Functions by SR
 Version: 0.0.1
-Author: Samuel Robinson
+Authors@R: person("Samuel", "Robinson", email = "samuel.robinson@ucalgary.ca",
+  role = c("aut", "cre"))
 Description: Contains useful functions that I use repeatedly.
     Primarily used for making bee data figures.
 License: cc

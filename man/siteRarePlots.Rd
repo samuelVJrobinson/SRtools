@@ -36,5 +36,13 @@ A \code{ggplot} object
 #Function to make "Linc-style" rarefaction plots using \pgk{vegan}
 }
 \examples{
-NULL
+library(SRtools)
+data(dune,package='vegan')
+
+#Site-by-site
+siteRarePlots(dune,Ncol = 5,Nrow=4,measType = 'Chao1',seMult = 1.96)
+
+#Overall
+oDune <-t(as.matrix(colSums(dune)))
+siteRarePlots(oDune,Ncol = 1,Nrow=1,measType = 'Chao1',seMult = 1.96)
 }

@@ -3,30 +3,45 @@
 #' @param d Data frame or tibble
 #' @param family Family column
 #' @param genus Genus column
-#' @param genSpp GenSpp column (create using \code{\link{makeGenSpp}})
+#' @param species Species column - can also use genSpp column (see below)
+#' @param genSpp GenSpp column (optional - create using \code{\link{makeGenSpp}})
 #' @param colourSet Colour set from ColourBrewer (default = "Set1")
 #' @param scaleYtext Scaling factor for y-axis text (default = c(1,1,1))
 #' @param keepSpp Keep morphospecies? (default = TRUE)
 #' @export
-#' @return A \code{ggarrange} (\code{ggplot}) object
+#' @return A \code{ggarrange} (\code{ggplot}) object, showing bee abundances split up by species, genus, and family
 #'
 #' @examples
-#'
-#' dat <- data.frame(f=c('Apidae','Apidae','Apidae','Colletidae','Andrenidae','Andrenidae'), g=c('Bombus','Bombus','Apis','Hylaeus','Panurgus','Panurgus'), s=c('rufocinctus','rufocinctus','mellifera','latifrons','badia','spp.'))
-#' abundPlots(dat,f,g,s,showSpp=FALSE)
-#' abundPlots(dat,f,g,s,showSpp=TRUE)
-abundPlots <- function(d,family=family,genus=genus,genSpp=genSpp,colourSet='Set1',scaleYtext=c(1,1,1),keepSpp=TRUE){
+#' dat <- data.frame(f=c('Apidae','Apidae','Apidae','Colletidae','Andrenidae','Andrenidae'),
+#'     g=c('Bombus','Bombus','Apis','Hylaeus','Lasioglossum','Lasioglossum'),
+#'     s=c('rufocinctus','rufocinctus','mellifera','annulatus','zonulum','spp.'))
+#' abundPlots(dat,f,g,s,keepSpp=FALSE)
+#' abundPlots(dat,f,g,s,keepSpp=TRUE)
+abundPlots <- function(d,family=family,genus=genus,species=NULL,genSpp=NULL,colourSet='Set1',
+                       scaleYtext=c(1,1,1),keepSpp=TRUE){
   require(RColorBrewer)
   require(dplyr); require(tidyr)
-  require(ggpubr)
+  require(ggpubr); require(rlang)
   options(dplyr.summarise.inform=FALSE)
 
   if('sf' %in% class(d)) d <- d %>% sf::st_drop_geometry() #Drop geometry if sf object
 
+  family <- enquo(family) #Defuse expressions
+  genus <- enquo(genus)
+  species <- enquo(species)
+  genSpp <- enquo(genSpp)
+
+  if(!xor(is.null(get_expr(species)),is.null(get_expr(genSpp)))) stop('species OR genSpp column must be specified')
+
+  if(is.null(get_expr(genSpp))){ #If genSpp column not specified
+    d <- makeGenSpp(d,{{genus}},{{species}}) #Create genSpp column
+    genSpp <- quo_set_expr(genSpp,expr(genSpp)) #Set genSpp expression
+    genSpp <- quo_set_env(genSpp,quo_get_env(species)) #Set genSpp environment
+  }
+
   #Colours for individual families
-  famCols <- data.frame(
-    family = c('Andrenidae','Apidae','Colletidae','Halictidae','Megachilidae'),
-    cols=brewer.pal(5,colourSet)) #Colour scheme for families
+  famCols <- tibble(cols=brewer.pal(5,colourSet), #Colour scheme for families
+                    {{family}} := c('Andrenidae','Apidae','Colletidae','Halictidae','Megachilidae'))
 
   #Species abundance plot
 
@@ -36,6 +51,8 @@ abundPlots <- function(d,family=family,genus=genus,genSpp=genSpp,colourSet='Set1
     arrange(desc({{family}}),n) %>% ungroup() %>% #Arrange by family
     mutate({{genSpp}}:=factor({{genSpp}},level={{genSpp}}))
 
+  # famNam <- deparse(substitute(family)) #Turns expression into character string
+
   #Data for coloured background rectangles
   rectDat <- d %>% filter(!grepl('spp\\.$',{{genSpp}}) | keepSpp) %>%
     count({{family}},{{genSpp}}) %>%  #Count family and genSpp occurrences
@@ -44,7 +61,7 @@ abundPlots <- function(d,family=family,genus=genus,genSpp=genSpp,colourSet='Set1
     mutate(ymax=cumsum(nSpp)+0.5,ymin=lag(ymax,default=0.5)) %>%
     rowwise() %>% mutate(ymid=mean(c(ymax,ymin))) %>%
     mutate(xmin=0,xmax=max(plotDat$n)) %>%
-    left_join(famCols,by=deparse(substitute(family)))
+    left_join(famCols,by=as_label(family))
 
   #Species plot
   titleText <- paste0('Species (',nrow(plotDat),' total)')
@@ -72,7 +89,7 @@ abundPlots <- function(d,family=family,genus=genus,genSpp=genSpp,colourSet='Set1
     mutate(ymax=cumsum(nSpp)+0.5,ymin=lag(ymax,default=0.5)) %>%
     rowwise() %>% mutate(ymid=mean(c(ymax,ymin))) %>%
     mutate(xmin=0,xmax=max(plotDat$n)) %>%
-    left_join(famCols,by=deparse(substitute(family)))
+    left_join(famCols,by=as_label(family))
 
   #Genus plot
   titleText <- paste0('Genera (',nrow(plotDat),' total)')
@@ -90,7 +107,7 @@ abundPlots <- function(d,family=family,genus=genus,genSpp=genSpp,colourSet='Set1
   plotDat <- d %>%  #Data for histograms
     group_by({{family}}) %>% summarize(n=n()) %>% ungroup() %>%
     arrange(desc({{family}}),n) %>%
-    left_join(famCols,by=deparse(substitute(family))) %>%
+    left_join(famCols,by=as_label(family)) %>%
     mutate({{family}}:=factor({{family}},level={{family}}))
 
   #Make family plot
