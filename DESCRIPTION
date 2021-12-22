@@ -1,0 +1,18 @@
+Package: SRtools
+Type: Package
+Title: Helper Functions by SR
+Version: 0.0.1
+Author: Samuel Robinson
+Description: Contains useful functions that I use repeatedly.
+    Primarily used for making bee data figures.
+License: cc
+Encoding: UTF-8
+RoxygenNote: 7.1.2
+Imports:
+  dplyr,
+  tidyr,
+  ggplot2,
+  vegan,
+  ggpubr,
+  RColorBrewer
+
