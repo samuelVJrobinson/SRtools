@@ -8,7 +8,7 @@ siteRarePlots(
   d,
   Ncol = NA,
   Nrow = NA,
-  measType = "both",
+  measType = "Chao1",
   textRange = c(0.1, 0.4),
   seMult = 1,
   rowOrder = "asis"
@@ -21,7 +21,7 @@ siteRarePlots(
 
 \item{Nrow}{Number of rows for facets}
 
-\item{measType}{Type of diversity predictor ('both','Chao1','ACE','none')}
+\item{measType}{Diversity predictor ('Chao1' or 'none')}
 
 \item{textRange}{Proportion upper/lower bounds for text display. Can be 2 values overall, or 2 x N sites (min1,max1,min2,max2,...,minN,maxN).}
 
@@ -36,13 +36,12 @@ A \code{ggplot} object
 #Function to make "Linc-style" rarefaction plots using \pgk{vegan}
 }
 \examples{
-library(SRtools)
 data(dune,package='vegan')
 
 #Site-by-site
-siteRarePlots(dune,Ncol = 5,Nrow=4,measType = 'Chao1',seMult = 1.96)
+siteRarePlots(dune,Ncol = 5,Nrow=4,measType = 'Chao1',seMult = 2)
 
 #Overall
 oDune <-t(as.matrix(colSums(dune)))
-siteRarePlots(oDune,Ncol = 1,Nrow=1,measType = 'Chao1',seMult = 1.96)
+siteRarePlots(oDune,Ncol = 1,Nrow=1,measType = 'Chao1',seMult = 2)
 }

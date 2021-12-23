@@ -4,37 +4,32 @@
 #' @param d Matrix of species abundance (rows = species, cols = sites)
 #' @param Ncol Number of columns for facets
 #' @param Nrow Number of rows for facets
-#' @param measType Type of diversity predictor ('both','Chao1','ACE','none')
+#' @param measType Diversity predictor ('Chao1' or 'none')
 #' @param textRange Proportion upper/lower bounds for text display. Can be 2 values overall, or 2 x N sites (min1,max1,min2,max2,...,minN,maxN).
 #' @param seMult Multiplier for SE (default = 1)
 #' @param rowOrder Should sites in facets be ordered in row order ('asis'), by diversity ('estDiv'), or # of samples ('Nsamp')?
 #' @return A \code{ggplot} object
 #' @export
 #' @examples
-#' library(SRtools)
 #' data(dune,package='vegan')
 #'
-#' #Site-by-site
-#' siteRarePlots(dune,Ncol = 5,Nrow=4,measType = 'Chao1',seMult = 1.96)
+#'#Site-by-site
+#'siteRarePlots(dune,Ncol = 5,Nrow=4,measType = 'Chao1',seMult = 2)
 #'
-#' #Overall
-#' oDune <-t(as.matrix(colSums(dune)))
-#' siteRarePlots(oDune,Ncol = 1,Nrow=1,measType = 'Chao1',seMult = 1.96)
-siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='both',textRange=c(0.1,0.4),seMult=1,rowOrder='asis'){
+#'#Overall
+#'oDune <-t(as.matrix(colSums(dune)))
+#'siteRarePlots(oDune,Ncol = 1,Nrow=1,measType = 'Chao1',seMult = 2)
+siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='Chao1',textRange=c(0.1,0.4),seMult=1,rowOrder='asis'){
   require(vegan)
-  require(ggplot2)
-  require(dplyr)
-  require(tidyr)
-  require(tibble)
+  require(ggplot2); require(dplyr)
+  require(tidyr); require(tibble)
 
   #BS checking
-  if(sum(c('both','Chao1','ACE','none') %in% measType)!=1) stop("measType must be one of 'both','Chao1','ACE','none'")
-
-  #TO DO:
-  # 1) How does function respond to empty rows in matrix?
-
-  if(nrow(d)>1 & any(is.na(c(Ncol,Nrow)))){ #If columns not specified, and Nsites>1
-    Ncol <- nrow(d); Nrow <- 1
+  if(sum(c('none','Chao1') %in% measType)!=1) stop("measType must be either 'Chao1' or 'none'")
+  if(any(rowSums(d)==0)){
+    stop(paste0("Empty rows (zero counts): ",paste(which(rowSums(d)==0),collapse=',')))
+  } else if(any(colSums(d)==0)){
+    stop(paste0("Empty columns (zero counts): ",paste(which(colSums(d)==0),collapse=',')))
   }
 
   if(is.null(rownames(d))) rownames(d) <- as.character(1:nrow(d)) #Create rownames (site names) if necessary
@@ -91,9 +86,8 @@ siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='both',textRange=c(0.1,0.4)
     stop('textRange must 2 or nrow(d)* 2 long')
   }
 
-
+  #Make rarefaction curves
   p1 <- ggplot(data=rareDat)+
-    facet_wrap(~Site,nrow=Nrow,ncol=Ncol) +
     geom_line(aes(Sample,Species),data=rareDat,size=1)+
     geom_point(data=graphText2,aes(x=N,y=S.obs),size=2)+
     geom_segment(data=graphText2,aes(x=N,y=S.obs,xend=N,yend=0),linetype='dashed')+
@@ -102,35 +96,23 @@ siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='both',textRange=c(0.1,0.4)
     geom_text(data=graphText2,aes(x=xpos,y=yupr-(yupr-ylwr)*ifelse(measType=='both',0.33,0.5),
                                   label=paste('S.obs =',S.obs)),hjust=1,size=3)
 
-  if(measType=='both'){ #If using both richness indices
-    p1 <- p1 +
-      geom_line(data=graphText,aes(x=Sample,y=meas,col=index),size=1)+
-      geom_ribbon(data=graphText,aes(x=Sample,ymax=meas+se,ymin=meas-se,fill=index),alpha=0.2)+
-      geom_text(data=graphText2,aes(x=xpos,y=yupr-(yupr-ylwr)*0.66,
-                                    label=paste('S.chao1 =',S.chao1,'\u00B1',se.chao1)),hjust=1,size=3)+
-      geom_text(data=graphText2,aes(x=xpos,y=ylwr,label=paste('S.ACE =',S.ACE,'\u00B1',se.ACE)),hjust=1,size=3)+
-      labs(x='Number of Specimens',y='Richness',col='Estimated\nSpecies\nRichness',
-           fill='Estimated\nSpecies\nRichness')+
-      scale_colour_manual(values=c('red','blue'))+
-      scale_fill_manual(values=c('red','blue'))
-
-  } else if(measType=='Chao1'|measType=='ACE') {
-
-    p1 <- p1 +
-      geom_line(data=filter(graphText,index==measType),aes(x=Sample,y=meas,col=index),size=1)+
-      geom_ribbon(data=filter(graphText,index==measType),aes(x=Sample,ymax=meas+se,ymin=meas-se,fill=index),alpha=0.2)+
-      labs(x='Number of Specimens',y='Richness',col='Estimated\nSpecies\nRichness',
-           fill='Estimated\nSpecies\nRichness')+
-      scale_colour_manual(values=c('black','black'))+
-      scale_fill_manual(values=c('black','black'))
-
-    if(measType=='Chao1'){
-      p1 <- p1 + geom_text(data=graphText2,aes(x=xpos,y=ylwr,
-                                               label=paste('S.chao1 =',S.chao1,'\u00B1',se.chao1)),hjust=1,size=3)
-    } else {
-      p1 <- p1 + geom_text(data=graphText2,aes(x=xpos,y=ylwr*0.66,
-                                               label=paste('S.ACE =',S.ACE,'\u00B1',se.ACE)),hjust=1,size=3)
+  if(nrow(d)>1){ #Use faceting if multiple sites are present
+    if(any(is.na(c(Ncol,Nrow)))){ #If columns not specified
+      Ncol <- nrow(d); Nrow <- 1 #Single row, multiple columns
     }
+    p1 <- p1 + facet_wrap(~Site,nrow=Nrow,ncol=Ncol)
+  }
+
+  if(measType=='Chao1') { #Plot predicted richness +/- CIs
+    p1 <- p1 +
+      geom_line(data=filter(graphText,index=='Chao1'),aes(x=Sample,y=meas),
+                size=1,show.legend = FALSE,col='black')+
+      geom_ribbon(data=filter(graphText,index=='Chao1'),aes(x=Sample,ymax=meas+se,ymin=meas-se),
+                  alpha=0.2,show.legend = FALSE,fill='black')+
+      labs(x='Number of Specimens',y='Richness')+
+      geom_text(data=graphText2,
+                aes(x=xpos,y=ylwr,label=paste('S.chao1 =',S.chao1,'\u00B1',se.chao1)),
+                hjust=1,size=3)
   }
   return(p1)
 }
