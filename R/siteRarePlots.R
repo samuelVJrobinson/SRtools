@@ -83,7 +83,7 @@ siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='Chao1',textRange=c(0.1,0.4
              yupr=textRange[seq(2,nrow(d)*2,2)]) %>%
       mutate(yupr=yupr*ymax,ylwr=ylwr*ymax)
   } else {
-    stop('textRange must 2 or nrow(d)* 2 long')
+    stop('textRange must be 2 or nrow(d)*2 long')
   }
 
   #Make rarefaction curves

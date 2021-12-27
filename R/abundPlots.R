@@ -51,8 +51,6 @@ abundPlots <- function(d,family=family,genus=genus,species=NULL,genSpp=NULL,colo
     arrange(desc({{family}}),n) %>% ungroup() %>% #Arrange by family
     mutate({{genSpp}}:=factor({{genSpp}},level={{genSpp}}))
 
-  # famNam <- deparse(substitute(family)) #Turns expression into character string
-
   #Data for coloured background rectangles
   rectDat <- d %>% filter(!grepl('spp\\.$',{{genSpp}}) | keepSpp) %>%
     count({{family}},{{genSpp}}) %>%  #Count family and genSpp occurrences
