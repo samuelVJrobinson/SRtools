@@ -4,7 +4,14 @@
 \alias{dmy2date}
 \title{Create Date column}
 \usage{
-dmy2date(d, day, month, year, newName = "date", dateFormat = "\%d_\%m_\%Y")
+dmy2date(
+  d,
+  day,
+  month,
+  year,
+  newName = "date",
+  dateFormat = c("\%d", "\%m", "\%Y")
+)
 }
 \arguments{
 \item{d}{Data frame}
@@ -17,7 +24,7 @@ dmy2date(d, day, month, year, newName = "date", dateFormat = "\%d_\%m_\%Y")
 
 \item{newName}{Name for new date column (default = "date")}
 
-\item{dateFormat}{Format for date object (default = "%d_%m_%Y", see \code{strptime})}
+\item{dateFormat}{Date format for each column (default = c("\%d","\%m","\%Y"), see \code{strptime} for more codes)}
 }
 \value{
 A data frame
@@ -26,6 +33,7 @@ A data frame
 Converts day,month,year to a Date column (\code{as.Date})
 }
 \examples{
-dat <- data.frame(a=letters[1:2],d=c(10,12),m=c(6,12),y=c(1988,2012))
+dat <- data.frame(a=letters[1:2],d=c(10,12),
+    m=c(6,12),y=c(1988,2012))
 dmy2date(dat,d,m,y,'newDate')
 }
