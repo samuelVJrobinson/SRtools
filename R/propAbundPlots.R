@@ -73,6 +73,7 @@ propAbundPlots <- function(d,s,N,textYRange=c(0.5,0.9),by=NULL,Ncol=NA,Nrow=NA){
     mutate(across(everything(),~ifelse(is.nan(.),NA,.))) %>%
     #Trims white space and rounds to nearest 2 decimals
     mutate_at(vars(S.chao1:se.ACE),function(x) trimws(format(round(x,2),nsmall=2))) %>%
+    mutate_at(vars(S.chao1:se.ACE),~ifelse(.x=='0.00','0.01',.x)) %>%
     #Position for labels
     mutate(xpos=as.numeric(factor({{by}}))*length(uniqueSpp)) %>%
     mutate({{by}}:=factor({{by}},labels=rownames(dMat)))

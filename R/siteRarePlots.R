@@ -44,7 +44,8 @@ siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='Chao1',textRange=c(0.1,0.4
   graphText <- data.frame(Site=rownames(d),t(estimateR(d))) %>% #Data for Chao/ACE lines
     mutate(across(S.obs:se.ACE,~ifelse(is.nan(.),NA,.))) %>%
     select(-S.obs) %>% unite(chao,S.chao1,se.chao1,sep='_') %>%
-    unite(ACE,S.ACE,se.ACE,sep='_') %>% pivot_longer(chao:ACE,names_to='index') %>%
+    unite(ACE,S.ACE,se.ACE,sep='_') %>%
+    pivot_longer(chao:ACE,names_to='index') %>%
     separate(value,c('meas','se'),sep='_',convert=T) %>%
     mutate(se=se*seMult) %>% #Multiply by se multiplier
     mutate(index=factor(index,labels=c('ACE','Chao1'))) %>%
@@ -54,7 +55,8 @@ siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='Chao1',textRange=c(0.1,0.4
                           Sample=rep(1:max(rareDat$Sample),nrow(graphText)))
 
   graphText2 <- data.frame(N=rowSums(d),t(estimateR(d))) %>%
-    rownames_to_column(var='Site') %>% mutate(Site=factor(Site,levels=Site)) %>%
+    rownames_to_column(var='Site') %>%
+    mutate(Site=factor(Site,levels=Site)) %>%
     mutate(across(N:se.ACE,~ifelse(is.nan(.),NA,.))) %>%
     mutate(xpos=max(N)*0.95) %>% #X position
     mutate(ymax=switch(measType,
@@ -62,7 +64,8 @@ siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='Chao1',textRange=c(0.1,0.4
                        Chao1=max(S.chao1+se.chao1,na.rm=TRUE),
                        ACE=max(S.ACE+se.ACE,na.rm=TRUE))) %>%  #Maximum y value
     mutate(ymax=ifelse(is.na(ymax),S.obs,ymax)) %>% #If NAs made it through
-    mutate_at(vars(S.chao1:se.ACE),function(x) trimws(format(round(x,2),nsmall=2))) #Trim display variables
+    mutate_at(vars(S.chao1:se.ACE),function(x) trimws(format(round(x,2),nsmall=2))) %>% #Trim display variables
+    mutate_at(vars(S.chao1:se.ACE),~ifelse(.x=='0.00','0.01',.x))
 
   #Re-order sites as necessary
   newOrder <- switch(rowOrder,
