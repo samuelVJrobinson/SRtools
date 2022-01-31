@@ -24,8 +24,8 @@
 #'     propAbundPlots(s = species,N = counts, by = site, Nrow=3, Ncol=3)
 #'
 propAbundPlots <- function(d,s,N,textYRange=c(0.5,0.9),by=NULL,Ncol=NA,Nrow=NA){
-  require(ggplot2); require(dplyr); require(tidyr);
-  require(rlang); require(vegan)
+  library(ggplot2); library(dplyr); library(tidyr);
+  library(ggtext); library(rlang); library(vegan);
   options(dplyr.summarise.inform=FALSE) #Suppress dplyr messages
 
   s <- enquo(s) #Defuse expressions
@@ -93,23 +93,25 @@ propAbundPlots <- function(d,s,N,textYRange=c(0.5,0.9),by=NULL,Ncol=NA,Nrow=NA){
   ypos <- seq(max(d1$Proportion)*textYRange[2],max(d1$Proportion)*textYRange[1],length.out=3)
 
   brk <- d1 %>% pull(r) #Set breaks to ranks
-  spp <- d1 %>% pull({{s}}) #Set labels to Species
+  spp <- d1 %>% #Changes text colour to light grey if counts==0
+    mutate({{s}}:=paste0("<span style = 'color: ",ifelse(d1$count>0,"black","grey70"),"'>",{{s}},"</span>")) %>%
+    pull({{s}}) #Set labels to Species
 
   #Create plot
   p1 <- ggplot(d1,aes(r,Proportion))+ #Use rank rather than spp label
-      geom_col(fill='black')+ #Proportion=column height
-      geom_smooth(method='nls',se=F,formula=y~exp(b0+b1*log(x+1)), #Nonlinear smoother
-                  method.args=list(start=c(b0=1,b1=1)),col='red')+
-      scale_x_continuous(breaks = brk, labels = spp,
-                         expand = expansion(0,0.2))+ #Expand text size
-      theme(axis.text.x=element_text(angle=90,vjust=0.4))+ #Rotate x-axis text
-      coord_cartesian(ylim=range(d1$Proportion))+ #Cut off smoother at 0,0.7
-      #Add spp richness text
-      geom_text(da=graphText,aes(x=xpos,y=ypos[1],label=paste('N =',N)),hjust=1,size=3)+
-      geom_text(da=graphText,aes(x=xpos,y=ypos[2],label=paste('S.obs =',S.obs)),hjust=1,size=3)+
-      geom_text(da=graphText,aes(x=xpos,y=ypos[3],label=paste('S.Chao1 =',S.chao1,'\u00B1',se.chao1)),
-                hjust=1,size=3)+
-      labs(x='Species',y='Proportional Abundance')
+    geom_col(fill='black')+ #Proportion=column height
+    geom_smooth(method='nls',se=F,formula=y~exp(b0+b1*log(x+1)), #Nonlinear smoother
+                method.args=list(start=c(b0=1,b1=1)),col='red')+
+    scale_x_continuous(breaks = brk, labels = spp,
+                       expand = expansion(0,0.2))+ #Expand text size
+    theme(axis.text.x=element_text(angle=90,vjust=0.4))+ #Rotate x-axis text
+    coord_cartesian(ylim=range(d1$Proportion))+ #Cut off smoother at 0,0.7
+    #Add spp richness text
+    geom_text(da=graphText,aes(x=xpos,y=ypos[1],label=paste('N =',N)),hjust=1,size=3)+
+    geom_text(da=graphText,aes(x=xpos,y=ypos[2],label=paste('S.obs =',S.obs)),hjust=1,size=3)+
+    geom_text(da=graphText,aes(x=xpos,y=ypos[3],label=paste('S.Chao1 =',S.chao1,'\u00B1',se.chao1)),hjust=1,size=3)+
+    labs(x='Species',y='Proportional Abundance')+
+    theme(axis.text.x = element_markdown()) #Changes entries with no counts to light grey
 
   if(isFacet){ #If facets are being used
     if(any(is.na(c(Ncol,Nrow)))){ #If columns or rows not specified
@@ -118,6 +120,5 @@ propAbundPlots <- function(d,s,N,textYRange=c(0.5,0.9),by=NULL,Ncol=NA,Nrow=NA){
     }
     p1 <- p1 + facet_wrap({{by}},scales='free_x',ncol=Ncol,nrow=Nrow) #Use free x axis
   }
-
   return(p1)
 }
