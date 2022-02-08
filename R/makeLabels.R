@@ -1,25 +1,38 @@
 #' @title Print insect labels
-#' @description Function to print insect labels from a set of csv files. Written for labels used in the U of C insect collection and Galpern lab.
+#' @description Function to print insect labels from a set of csv files. Written
+#'   for labels used in the U of C insect collection and Galpern lab.
 #' @param inputPath Input file with number of labels needed (csv)
 #' @param csvPaths Paths to site and trap tables (vector with 2 paths - csv)
 #' @param outputPath Output path (docx)
-#' @param sepChar Separator characters for \code{inputPath}, \code{site}, and \code{trap} table csvs (default: rep(',',3))
+#' @param sepChar Separator characters for \code{inputPath}, \code{site}, and
+#'   \code{trap} table csvs (default: rep(',',3))
 #' @export
-#' @details \strong{\code{inputPath}} is a path to a csv with the following column headers:
+#' @details \strong{\code{inputPath}} is a path to a csv with the following
+#'   column headers:
 #'
-#' \emph{BTID} (trapping ID), \emph{N} (number of labels needed)
+#'   \emph{BTID} (trapping ID), \emph{N} (number of labels needed)
 #'
-#' \strong{\code{csvPaths[1]}} is a path to the \code{site} csv with the following column headers:
+#'   \strong{\code{csvPaths[1]}} is a path to the \code{site} csv with the
+#'   following column headers:
 #'
-#' \emph{BLID}, \emph{lat}, \emph{lon}, \emph{locality}, \emph{elevation}, \emph{country}, \emph{province}
+#'   \emph{BLID}, \emph{lat}, \emph{lon}, \emph{locality}, \emph{elevation},
+#'   \emph{country}, \emph{province}
 #'
-#' \strong{\code{csvPaths[2]}} is a path to the \code{trap} csv with the following column headers:
+#'   \strong{\code{csvPaths[2]}} is a path to the \code{trap} csv with the
+#'   following column headers:
 #'
-#' \emph{BTID}, \emph{BLID}, \emph{collector}, \emph{trapType}, \emph{startYear}, \emph{startMonth} (numeric), \emph{startDay}, \emph{endYear}, \emph{endMonth} (numeric), \emph{endDay}, \emph{lonTrap}, \emph{latTrap}, \emph{elevTrap}
+#'   \emph{BTID}, \emph{BLID}, \emph{collector}, \emph{trapType},
+#'   \emph{startYear}, \emph{startMonth} (numeric), \emph{startDay},
+#'   \emph{endYear}, \emph{endMonth} (numeric), \emph{endDay}, \emph{lonTrap},
+#'   \emph{latTrap}, \emph{elevTrap}
 #'
-#' If \emph{lonTrap}, \emph{latTrap}, or \emph{elevTrap} values are missing from \code{csvPaths[2]}, values will be filled using \code{site} csv.
+#'   If \emph{lonTrap}, \emph{latTrap}, or \emph{elevTrap} values are missing
+#'   from \code{csvPaths[2]}, values will be filled using \code{site} csv.
 #'
-#' \strong{\code{output[1]}} is a path to a \emph{docx} file that will be printed. If more than 1 page of labels is required, additional files will be created with numbers appended before the file extension (e.g. \emph{labels_01.docx}, \emph{labels_02.docx})
+#'   \strong{\code{output[1]}} is a path to a \emph{docx} file that will be
+#'   printed. If more than 1 page of labels is required, additional files will
+#'   be created with numbers appended before the file extension (e.g.
+#'   \emph{labels_01.docx}, \emph{labels_02.docx})
 #'
 #' @examples
 #' # Make csv files for labels
@@ -34,7 +47,8 @@
 #'                    elevation=c(800,1200),country=rep('CANADA',2),
 #'                    province=rep('Alberta',2))
 #'
-#' #Trap table
+#' #Trap table - netting has only a single day on label, while blue vane has a
+#' date range
 #' trap <- data.frame(BTID=c('10069-1-A-2015','51273-0-B-2019'),
 #'                    BLID=c(10069,51273),collector=c('D. Smith','L. Robbins'),
 #'                    trapType=c('Blue Vane','Netting'),
