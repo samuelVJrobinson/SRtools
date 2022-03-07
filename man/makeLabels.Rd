@@ -4,7 +4,13 @@
 \alias{makeLabels}
 \title{Print insect labels}
 \usage{
-makeLabels(inputPath, csvPaths, outputPath, sepChar = rep(",", 3))
+makeLabels(
+  inputPath,
+  csvPaths,
+  outputPath,
+  sepChar = rep(",", 3),
+  platform = "Word"
+)
 }
 \arguments{
 \item{inputPath}{Input file with number of labels needed (csv)}
@@ -15,6 +21,9 @@ makeLabels(inputPath, csvPaths, outputPath, sepChar = rep(",", 3))
 
 \item{sepChar}{Separator characters for \code{inputPath}, \code{site}, and
 \code{trap} table csvs (default: rep(',',3))}
+
+\item{platform}{Character string of platform used for opening docx files:
+'Word' (default), 'GoogleDocs', or 'LibreOffice'}
 }
 \description{
 Function to print insect labels from a set of csv files. Written
@@ -62,7 +71,7 @@ site <- data.frame(BLID=c(10069,51273),lat=c(50,51),lon=c(-114,-113),
                    province=rep('Alberta',2))
 
 #Trap table - netting has only a single day on label, while blue vane has a
-date range
+#date range
 trap <- data.frame(BTID=c('10069-1-A-2015','51273-0-B-2019'),
                    BLID=c(10069,51273),collector=c('D. Smith','L. Robbins'),
                    trapType=c('Blue Vane','Netting'),
@@ -79,6 +88,18 @@ write.csv(trap,'trapcsv.csv')
 #Create labels
 makeLabels(inputPath = 'inputcsv.csv',
            csvPaths = c('sitecsv.csv','trapcsv.csv'),
-           outputPath = 'labelSheet.docx'
+           outputPath = 'labelSheet.docx',
+           platform = 'Word'
+)
+
+#Same thing, but with 2 pages of labels - takes a few mins
+input$N <- c(100,100)
+
+write.csv(input,'inputcsv.csv')
+
+makeLabels(inputPath = 'inputcsv.csv',
+           csvPaths = c('sitecsv.csv','trapcsv.csv'),
+           outputPath = 'labelSheet.docx',
+           platform = 'Word'
 )
 }

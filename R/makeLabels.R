@@ -6,6 +6,8 @@
 #' @param outputPath Output path (docx)
 #' @param sepChar Separator characters for \code{inputPath}, \code{site}, and
 #'   \code{trap} table csvs (default: rep(',',3))
+#' @param platform Character string of platform used for opening docx files:
+#'   'Word' (default), 'GoogleDocs', or 'LibreOffice'
 #' @export
 #' @details \strong{\code{inputPath}} is a path to a csv with the following
 #'   column headers:
@@ -48,7 +50,7 @@
 #'                    province=rep('Alberta',2))
 #'
 #' #Trap table - netting has only a single day on label, while blue vane has a
-#' date range
+#' #date range
 #' trap <- data.frame(BTID=c('10069-1-A-2015','51273-0-B-2019'),
 #'                    BLID=c(10069,51273),collector=c('D. Smith','L. Robbins'),
 #'                    trapType=c('Blue Vane','Netting'),
@@ -65,10 +67,22 @@
 #' #Create labels
 #' makeLabels(inputPath = 'inputcsv.csv',
 #'            csvPaths = c('sitecsv.csv','trapcsv.csv'),
-#'            outputPath = 'labelSheet.docx'
+#'            outputPath = 'labelSheet.docx',
+#'            platform = 'Word'
+#' )
+#'
+#' #Same thing, but with 2 pages of labels - takes a few mins
+#' input$N <- c(100,100)
+#'
+#' write.csv(input,'inputcsv.csv')
+#'
+#' makeLabels(inputPath = 'inputcsv.csv',
+#'            csvPaths = c('sitecsv.csv','trapcsv.csv'),
+#'            outputPath = 'labelSheet.docx',
+#'            platform = 'Word'
 #' )
 
-makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3)){
+makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3),platform='Word'){
 
   require(tidyverse)
   require(officer) # https://ardata-fr.github.io/officeverse/officer-for-word.html
@@ -133,7 +147,16 @@ makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3)){
     )
   )
 
-  parProp <- fp_par(line_spacing=0.35) #Paragraph formatting properties
+  #These spacings seem to work OK on these various platforms.
+  lspace <- switch(platform,
+    Word = 0.9,
+    GoogleDocs = 1,
+    LibreOffice = 0.35,
+    NA
+  )
+  if(is.na(lspace)) stop(paste0('"',platform,'" platform not recognized. Options: "Word", "GoogleDocs", or "LibreOffice"'))
+
+  parProp <- fp_par(line_spacing=lspace) #Paragraph formatting properties
   textProp <- fp_text(font.family = "Arial",font.size=4) #Text formatting properties
   textProp_superscript <- textProp
   textProp_superscript$vertical.align <- 'superscript'
@@ -199,7 +222,12 @@ makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3)){
     }
     dateText <- fpar(ftext(startEndText,prop=textProp),fp_p = parProp) #Date text
 
-    sepText <- fpar(ftext(' ',prop=textProp),fp_p = parProp) #fp_par(line_spacing=0.5)) #Empty separator text
+    #Empty separator text - spacing needs to be different in Word for some reason
+    if(platform=='Word'){
+      sepText <- fpar(ftext(' ',prop=textProp),fp_p = fp_par(line_spacing=0.25))
+    } else {
+      sepText <- fpar(ftext(' ',prop=textProp),fp_p = parProp)
+    }
 
     #Create block list
 
@@ -275,7 +303,6 @@ makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3)){
   }
 
   for(i in 1:length(outputPath)){
-
     print(paste0('Making label page ',i,' of ',length(outputPath)))
 
     tBlock <- textBlockList[1:(pmin(pageLabNum*labLineNum,length(textBlockList)))] #Select 1 page-worth of labels
