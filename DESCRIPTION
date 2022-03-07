@@ -10,10 +10,16 @@ License: cc
 Encoding: UTF-8
 RoxygenNote: 7.1.2
 Imports:
+  tidyverse,
   dplyr,
   tidyr,
   ggplot2,
+  tibble,
+  rlang,
   vegan,
   ggpubr,
-  RColorBrewer
+  RColorBrewer,
+  officer,
+  knitr,
+  kableExtra
 
