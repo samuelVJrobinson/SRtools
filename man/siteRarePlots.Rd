@@ -15,7 +15,7 @@ siteRarePlots(
 )
 }
 \arguments{
-\item{d}{Matrix of species abundance (rows = species, cols = sites)}
+\item{d}{Matrix of species abundance (rows = sites, cols = species)}
 
 \item{Ncol}{Number of columns for facets}
 
@@ -27,7 +27,7 @@ siteRarePlots(
 
 \item{seMult}{Multiplier for SE (default = 1)}
 
-\item{rowOrder}{Should sites in facets be ordered in row order ('asis'), by diversity ('estDiv'), or # of samples ('Nsamp')?}
+\item{rowOrder}{Should sites in facets be ordered by row order ('asis'), observed diversity ('Ndiv'), or # of samples ('Nsamp')?}
 }
 \value{
 A \code{ggplot} object
