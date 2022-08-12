@@ -6,8 +6,16 @@
 \usage{
 wideTable(
   d,
-  countBy = {     {         countBy     } },
-  countNum = {     {         countNum     } },
+  countBy = {
+     {
+         countBy
+     }
+ },
+  countNum = {
+     {
+         countNum
+     }
+ },
   nsplit = NA,
   colNames = c("countBy", "count"),
   caption = "",

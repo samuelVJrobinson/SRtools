@@ -8,7 +8,7 @@ Description: Contains useful functions that I use repeatedly.
     Primarily used for making bee data figures.
 License: cc
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Imports:
   tidyverse,
   dplyr,
@@ -21,7 +21,8 @@ Imports:
   RColorBrewer,
   officer,
   knitr,
-  kableExtra
+  kableExtra,
+  ggtext
 Depends: 
     R (>= 2.10)
 LazyData: true

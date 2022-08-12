@@ -6,6 +6,8 @@
 #' @param outputPath Output path (docx)
 #' @param sepChar Separator characters for \code{inputPath}, \code{site}, and
 #'   \code{trap} table csvs (default: rep(',',3))
+#' @param latLonDigits Maximum digits used for latitude and longitude
+#' (default: c(5,5))
 #' @param platform Character string of platform used for opening docx files:
 #'   'Word' (default), 'GoogleDocs', or 'LibreOffice'
 #' @export
@@ -82,7 +84,7 @@
 #'            platform = 'Word'
 #' )
 
-makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3),platform='Word'){
+makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3),platform='Word',latLonDigits=c(5,5)){
 
   require(tidyverse)
   require(officer) # https://ardata-fr.github.io/officeverse/officer-for-word.html
@@ -136,6 +138,13 @@ makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3),platform
   if(any(!(c('country','locality') %in% colnames(site)))){
     stop('"country" and "locality" columns must be present in site table')
   }
+
+  #Round latitude/longitude digits if needed
+  trap <- trap %>% mutate(latTrap=round(latTrap,latLonDigits[1])) %>%
+    mutate(lonTrap=round(lonTrap,latLonDigits[2]))
+
+  site <- site %>% mutate(lat=round(lat,latLonDigits[1])) %>%
+    mutate(lon=round(lon,latLonDigits[2]))
 
   #Page formating properties
   setup <- block_section(
@@ -197,6 +206,7 @@ makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3),platform
         stop(paste0('No latitude/longitude found for BTID: ',input$BTID[i],' in either site or trap table'))
       }
     }
+
     latLonText <- fpar(ftext(latLon[1],prop=textProp), degMark, ftext('N, ',prop=textProp), #Latitude/longitude text
                        ftext(latLon[2],prop=textProp), degMark, ftext('W',prop=textProp), fp_p = parProp)
 

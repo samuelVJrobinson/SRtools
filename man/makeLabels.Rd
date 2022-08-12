@@ -9,7 +9,8 @@ makeLabels(
   csvPaths,
   outputPath,
   sepChar = rep(",", 3),
-  platform = "Word"
+  platform = "Word",
+  latLonDigits = c(5, 5)
 )
 }
 \arguments{
@@ -24,6 +25,9 @@ makeLabels(
 
 \item{platform}{Character string of platform used for opening docx files:
 'Word' (default), 'GoogleDocs', or 'LibreOffice'}
+
+\item{latLonDigits}{Maximum digits used for latitude and longitude
+(default: c(5,5))}
 }
 \description{
 Function to print insect labels from a set of csv files. Written
