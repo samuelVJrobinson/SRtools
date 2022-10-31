@@ -10,7 +10,8 @@ makeLabels(
   outputPath,
   sepChar = rep(",", 3),
   platform = "Word",
-  latLonDigits = c(5, 5)
+  latLonDigits = c(5, 5),
+  skipLines = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ makeLabels(
 
 \item{latLonDigits}{Maximum digits used for latitude and longitude
 (default: c(5,5))}
+
+\item{skipLines}{Should missing BLIDs be skipped? (default: FALSE)}
 }
 \description{
 Function to print insect labels from a set of csv files. Written
