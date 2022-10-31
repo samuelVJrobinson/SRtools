@@ -6,10 +6,11 @@
 #' @param outputPath Output path (docx)
 #' @param sepChar Separator characters for \code{inputPath}, \code{site}, and
 #'   \code{trap} table csvs (default: rep(',',3))
-#' @param latLonDigits Maximum digits used for latitude and longitude
-#' (default: c(5,5))
 #' @param platform Character string of platform used for opening docx files:
 #'   'Word' (default), 'GoogleDocs', or 'LibreOffice'
+#' @param latLonDigits Maximum digits used for latitude and longitude
+#' (default: c(5,5))
+#' @param skipLines Should missing BLIDs be skipped? (default: FALSE)
 #' @export
 #' @details \strong{\code{inputPath}} is a path to a csv with the following
 #'   column headers:
@@ -84,7 +85,8 @@
 #'            platform = 'Word'
 #' )
 
-makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3),platform='Word',latLonDigits=c(5,5)){
+makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3),platform='Word',latLonDigits=c(5,5),
+                       skipLines = FALSE){
 
   require(tidyverse)
   require(officer) # https://ardata-fr.github.io/officeverse/officer-for-word.html
@@ -92,51 +94,116 @@ makeLabels <- function(inputPath,csvPaths,outputPath,sepChar=rep(',',3),platform
   i2c <- 2.54 #Convert inches to cm
 
   input <- read.csv(inputPath,strip.white = TRUE,sep=sepChar[1]) %>%
-    mutate(across(everything(),~gsub('(^\\s|\\s$)','',.x))) %>% #Strip white space
-    mutate(N=as.numeric(N)) %>%
-    separate(BTID,c('BLID','Pass','Trap','Year'),sep='-',remove = FALSE)
+    mutate(across(everything(),~gsub('(^\\s|\\s$)','',.x))) #Strip white space
+
+  #Check input
+  if(any(!c('BTID','N') %in% colnames(input))){
+    stop('Input csv must contain "BTID" and "N" columns')
+  } else if(any(!colnames(input) %in% c('BTID','N'))){
+    warning('Extra columns removed: ', paste0(colnames(input)[!colnames(input) %in% c('BTID','N')],collapse=', '))
+    input <- input[,colnames(input) %in% c('BTID','N')]
+  }
+
+  input <- input  %>% mutate(N=as.numeric(N))
+
+  if(any(input$N==0 | is.na(input$N))){
+    warning('Some input label N are zero or NA, and will be removed')
+    input <- input[!(input$N==0 | is.na(input$N)),]
+    if(nrow(input)==0) stop('No non-empty rows in input table')
+  } else if(any(nchar(input$BTID)==0 | is.na(input$BTID))){
+    stop(paste0('Input BTIDs are blank or NA in rows: ',paste0(which(nchar(input$BTID)==0 | is.na(input$BTID)),collapse=', ')))
+  } else if(any(sapply(strsplit(input$BTID,'-'),length)!=4)){
+    stop('BTIDs must have 3 separator hyphens (1 between BLID, Pass, Trap, and Year)')
+  }
+
+  input <- input  %>% separate(BTID,c('BLID','Pass','Trap','Year'),sep='-',remove = FALSE)
 
   #Read in site and trap tables
-  site <- read.table(csvPaths[1],header=TRUE,sep=sepChar[2],stringsAsFactors = FALSE,strip.white = TRUE) #%>%
-  # mutate(across(everything(),~gsub('(^\\s|\\s$)','',.x))) %>% #Strip white space
-
-  trap <- read.table(csvPaths[2],header=T,sep=sepChar[3],stringsAsFactors = F,strip.white = TRUE) #%>%
-  # mutate(across(everything(),~gsub('(^\\s|\\s$)','',.x))) %>% #Strip white space
-  # mutate(across(c(pass,startYear:endMinute,lonTrap:elevTrap,startjulian:deployedhours)))
+  site <- read.table(csvPaths[1],header=TRUE,sep=sepChar[2],stringsAsFactors = FALSE,strip.white = TRUE)
+  trap <- read.table(csvPaths[2],header=T,sep=sepChar[3],stringsAsFactors = F,strip.white = TRUE)
 
   #BS checking
   if(ncol(site)==1) stop('Site table has only 1 column. Fix separator character?')
   if(ncol(trap)==1) stop('Trap table has only 1 column. Fix separator character?')
 
-  checkBLID <- !(input$BLID %in% site$BLID) & !(input$BLID %in% trap$BLID) #BLID - site IDs
-  if(any(checkBLID)){
-    print(paste0('BLIDs not found in site/trap tables:\n ',paste(input$BLID[checkBLID],collapse = ',')))
-    x <- readline('Continue, and skip entries? (Y/N): ')
-    if(x=='Y'|x=='y'){
-      input <- input[!checkBLID,] #Remove entries without matching BLIDs
-    } else {
-      print('Quitting program')
-      return()
-    }
-  } else {
-    print('BLIDs OK')
-  }
-  checkBTID <- !(input$BTID %in% trap$BTID) #BTID - trapping IDs
-  if(any(checkBTID)){
-    print(paste0('BTIDs not found in trap table: ',paste(input$BTID[checkBTID],collapse = ',')))
-    x <- readline('Continue, and skip entries? (Y/N): ')
-    if(x=='Y'|x=='y'){
-      input <- input[!checkBTID,] #Remove entries without matching BLIDs
-    } else {
-      print('Quitting program')
-      return()
-    }
-  } else {
-    print('BTIDs OK')
+  if(any(apply(site,1,function(x) sum(is.na(x)))==ncol(site))){
+    warning(sum(apply(site,1,function(x) sum(is.na(x)))==ncol(site)),' empty rows removed from site table')
+    site <- site[!apply(site,1,function(x) sum(is.na(x)))==ncol(site),]
   }
 
-  if(any(!(c('country','locality') %in% colnames(site)))){
-    stop('"country" and "locality" columns must be present in site table')
+  if(any(apply(trap,1,function(x) sum(is.na(x)))==ncol(trap))){
+    warning(sum(apply(trap,1,function(x) sum(is.na(x)))==ncol(trap)),' empty rows removed from trap table')
+    trap <- trap[!apply(trap,1,function(x) sum(is.na(x)))==ncol(trap),]
+  }
+
+  #Check site table
+  siteLabs <- c('BLID','lat','lon','elevation','locality','country','province')
+  if(any(!siteLabs %in% colnames(site))){
+    stop('Site csv must contain "BLID", "lat", "lon", "elevation", "locality","country", and "province" columns')
+  } else if(any(!colnames(site) %in% siteLabs)){
+    warning('Extra columns removed: ',
+            paste0(colnames(site)[!colnames(site) %in% siteLabs],collapse=', '))
+    site <- site[,colnames(site) %in% siteLabs]
+  }
+
+  #Check for NA or non-matching BLIDs
+  checkSiteBLID <- !(input$BLID %in% site$BLID)
+  if(any(checkSiteBLID) & skipLines){
+    writeLines(paste0('BLIDs missing from site table:\n',paste(input$BLID[checkSiteBLID],collapse = ',')))
+    print(paste0('Skipping ',sum(checkSiteBLID),' entries from input data'))
+    input <- input[!checkSiteBLID,] #Remove entries without matching BLIDs
+  } else if(any(checkSiteBLID) & !skipLines) {
+    stop(paste0('BLIDs in input table missing from site table:\n',paste(input$BLID[checkSiteBLID],collapse = ','),
+                '\nUse skipLines=TRUE to skip missing BLIDs'))
+  }
+
+  #Check for NAs in other columns - only if also linked to input table
+  checkSiteCols <- apply(is.na(site[,c('locality','country','province')]),1,any)
+  usedSite <- site$BLID %in% input$BLID #Used sites
+  if(any(checkSiteCols[usedSite])){
+    stop(paste0('Locality, country, or province missing from site table in rows:\n',paste(which(usedSite&checkSiteCols),collapse = ',')))
+  }
+
+  #Check trap table
+  trapLabs <- c("BTID","BLID","collector","trapType","startYear","startMonth",
+                "startDay","endYear","endMonth","endDay","lonTrap","latTrap","elevTrap")
+
+  if(any(!trapLabs %in% colnames(trap))){
+    stop('Site table must contain "BTID", "BLID", "lat", "lon", "elevation", "locality","country", and "province" columns')
+  } else if(any(!colnames(trap) %in% trapLabs)){
+    warning('Extra columns removed: ',
+            paste0(colnames(trap)[!colnames(trap) %in% trapLabs],collapse=', '))
+    trap <- trap[,colnames(trap) %in% trapLabs]
+  }
+
+  #BLID - trap IDs
+  checkTrapBLID <- !(input$BLID %in% trap$BLID)
+  if(any(checkTrapBLID) & skipLines){
+    writeLines(paste0('BLIDs missing from trap table:\n',paste(input$BLID[checkTrapBLID],collapse = ',')))
+    print(paste0('Skipping ',sum(checkTrapBLID),' entries from input data'))
+    input <- input[!checkTrapBLID,] #Remove entries without matching BLIDs
+  } else if(any(checkTrapBLID) & !skipLines) {
+    stop(paste0('BLIDs in input table missing from trap table:\n',paste(input$BLID[checkTrapBLID],collapse = ','),
+                '\nUse skipLines=TRUE to skip missing BLIDs'))
+  }
+
+  checkTrapBTID <- !(input$BTID %in% trap$BTID)
+  if(any(checkTrapBTID) & skipLines){
+    writeLines(paste0('BTIDs missing from trap table:\n',paste(input$BTID[checkTrapBTID],collapse = ',')))
+    print(paste0('Skipping ',sum(checkTrapBTID),' entries from input data'))
+    input <- input[!checkTrapBTID,] #Remove entries without matching BTIDs
+  } else if(any(checkTrapBTID) & !skipLines) {
+    stop(paste0('BTIDs in input table missing from trap table:\n',paste(input$BTID[checkTrapBTID],collapse = ','),
+                '\nUse skipLines=TRUE to skip missing BTIDs'))
+  }
+
+
+  #Check for NAs in other columns - only if also linked to input table
+  checkTrapCols <- apply(is.na(trap[,c('collector','trapType','startYear','startMonth','startDay')]),1,any)
+  usedTrap <- trap$BTID %in% input$BTID #Used traps
+  if(any(checkTrapCols[usedTrap])){
+    stop(paste0('collector, trapType, or startDate (year, month, date) missing from trap table in rows: ',
+                paste(which(usedTrap&checkTrapCols),collapse = ',')))
   }
 
   #Round latitude/longitude digits if needed
