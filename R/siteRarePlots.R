@@ -1,13 +1,13 @@
 #' @title Site-based rarefaction plots
 #' @description #Function to make "Linc-style" rarefaction plots using \pgk{vegan}
 #    Takes matrix of spp abundance, with named sites for each row, and named spp for each column
-#' @param d Matrix of species abundance (rows = species, cols = sites)
+#' @param d Matrix of species abundance (rows = sites, cols = species)
 #' @param Ncol Number of columns for facets
 #' @param Nrow Number of rows for facets
 #' @param measType Diversity predictor ('Chao1' or 'none')
 #' @param textRange Proportion upper/lower bounds for text display. Can be 2 values overall, or 2 x N sites (min1,max1,min2,max2,...,minN,maxN).
 #' @param seMult Multiplier for SE (default = 1)
-#' @param rowOrder Should sites in facets be ordered in row order ('asis'), by diversity ('estDiv'), or # of samples ('Nsamp')?
+#' @param rowOrder Should sites in facets be ordered by row order ('asis'), observed diversity ('Ndiv'), or # of samples ('Nsamp')?
 #' @return A \code{ggplot} object
 #' @export
 #' @examples
@@ -72,7 +72,8 @@ siteRarePlots <- function(d,Ncol=NA,Nrow=NA,measType='Chao1',textRange=c(0.1,0.4
                      Ndiv=order(apply(as.matrix(as.numeric(graphText2[,switch(measType,both=c(4,6),Chao1=c(4),ACE=c(6))])),1,max),
                                 decreasing=TRUE),
                      Nsamp=order(graphText2$N,decreasing=TRUE),
-                     asis=1:nrow(d))
+                     asis=1:nrow(d),
+                     stop(paste(rowOrder,' not found. Must be "Ndiv", "Nsamp", or "asis"')))
   rareDat <- rareDat %>% mutate(Site=factor(Site,levels=levels(Site)[newOrder]))
   graphText2 <- graphText2 %>% mutate(Site=factor(Site,levels=levels(Site)[newOrder])) %>%
     arrange(Site)

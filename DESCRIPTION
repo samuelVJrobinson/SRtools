@@ -10,10 +10,23 @@ License: cc
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 Imports:
+  tidyverse,
   dplyr,
   tidyr,
   tibble,
   ggplot2,
+  tibble,
+  rlang,
   vegan,
   ggpubr,
   RColorBrewer
+  officer,
+  knitr,
+  kableExtra,
+  ggtext
+Depends: 
+    R (>= 2.10)
+LazyData: true
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
