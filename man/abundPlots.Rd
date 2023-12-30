@@ -12,7 +12,8 @@ abundPlots(
   genSpp = NULL,
   colourSet = "Set1",
   scaleYtext = c(1, 1, 1),
-  keepSpp = TRUE
+  keepSpp = TRUE,
+  returnPlots = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ abundPlots(
 \item{scaleYtext}{Scaling factor for y-axis text (default = c(1,1,1))}
 
 \item{keepSpp}{Keep morphospecies? (default = TRUE)}
+
+\item{returnPlots}{Should plots be returned in a list instead? (default = FALSE)}
 }
 \value{
 A \code{ggarrange} (\code{ggplot}) object, showing bee abundances split up by species, genus, and family

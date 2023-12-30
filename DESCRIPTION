@@ -8,12 +8,12 @@ Description: Contains useful functions that I use repeatedly.
     Primarily used for making bee data figures.
 License: cc
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Imports:
   dplyr,
   tidyr,
+  tibble,
   ggplot2,
   vegan,
   ggpubr,
   RColorBrewer
-

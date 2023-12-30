@@ -14,7 +14,7 @@
 #'     m=c(6,12),y=c(1988,2012))
 #' dmy2date(dat,d,m,y,'newDate')
 dmy2date <- function(d,day,month,year,newName='date',dateFormat=c('%d','%m','%Y')){
-  require(dplyr)
+  require(dplyr);require(tidyr)
   day <- enquo(day); month <- enquo(month); year <- enquo(year)
   newName <- sym(newName)
 

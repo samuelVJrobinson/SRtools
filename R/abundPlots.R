@@ -8,6 +8,7 @@
 #' @param colourSet Colour set from ColourBrewer (default = "Set1")
 #' @param scaleYtext Scaling factor for y-axis text (default = c(1,1,1))
 #' @param keepSpp Keep morphospecies? (default = TRUE)
+#' @param returnPlots Should plots be returned in a list instead? (default = FALSE)
 #' @export
 #' @return A \code{ggarrange} (\code{ggplot}) object, showing bee abundances split up by species, genus, and family
 #'
@@ -18,7 +19,7 @@
 #' abundPlots(dat,f,g,s,keepSpp=FALSE)
 #' abundPlots(dat,f,g,s,keepSpp=TRUE)
 abundPlots <- function(d,family=family,genus=genus,species=NULL,genSpp=NULL,colourSet='Set1',
-                       scaleYtext=c(1,1,1),keepSpp=TRUE){
+                       scaleYtext=c(1,1,1),keepSpp=TRUE,returnPlots=FALSE){
   require(RColorBrewer)
   require(dplyr); require(tidyr)
   require(ggpubr); require(rlang)
@@ -116,7 +117,12 @@ abundPlots <- function(d,family=family,genus=genus,species=NULL,genSpp=NULL,colo
     labs(y=NULL,x='Number of specimens',title=titleText)+
     scale_fill_manual(values=as.character(plotDat$cols))
 
-  #Put all plots together into a single plot
-  a <- ggarrange(sppPlot,ggarrange(genPlot,famPlot,nrow=2),ncol=2)
+  if(returnPlots){
+    #Put all plots together into a list
+    a <- list(sppPlot,genPlot,famPlot)
+  } else {
+    #Put all plots together into a single plot
+    a <- ggarrange(sppPlot,ggarrange(genPlot,famPlot,nrow=2),ncol=2)
+  }
   return(a)
 }

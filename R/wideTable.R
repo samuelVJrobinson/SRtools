@@ -1,8 +1,8 @@
 #' @title Create a wide kable table
 #' @description Function to make a "wide kable table", with column names replicated across the page
 #' @param d Data frame or tibble
-#' @param countBy
-#' @param countNum
+#' @param countBy Category column
+#' @param countNum Numeric column
 #' @param nsplit How many splits should be made?
 #' @param colNames Change column names
 #' @param caption Table caption

@@ -6,8 +6,16 @@
 \usage{
 wideTable(
   d,
-  countBy = {     {         countBy     } },
-  countNum = {     {         countNum     } },
+  countBy = {
+     {
+         countBy
+     }
+ },
+  countNum = {
+     {
+         countNum
+     }
+ },
   nsplit = NA,
   colNames = c("countBy", "count"),
   caption = "",
@@ -17,6 +25,10 @@ wideTable(
 }
 \arguments{
 \item{d}{Data frame or tibble}
+
+\item{countBy}{Category column}
+
+\item{countNum}{Numeric column}
 
 \item{nsplit}{How many splits should be made?}
 
