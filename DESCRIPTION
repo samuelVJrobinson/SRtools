@@ -1,5 +1,6 @@
 Package: SRtools
 Type: Package
+Date: 2024-11-05
 Title: Helper Functions by SR
 Version: 0.0.1
 Authors@R: person("Samuel", "Robinson", email = "samuel.robinson@ucalgary.ca",
@@ -9,23 +10,10 @@ Description: Contains useful functions that I use repeatedly.
 License: cc
 Encoding: UTF-8
 RoxygenNote: 7.2.3
-Imports:
-  tidyverse,
-  dplyr,
-  tidyr,
-  tibble,
-  ggplot2,
-  tibble,
-  rlang,
-  vegan,
-  ggpubr,
-  RColorBrewer
-  officer,
-  knitr,
-  kableExtra,
-  ggtext
 Depends: 
-    R (>= 2.10)
+    R (>= 4.4)
+Imports:
+    dplyr, tidyr, tibble, ggplot2, rlang, vegan, ggpubr, RColorBrewer, officer, knitr, kableExtra, ggtext
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0)
